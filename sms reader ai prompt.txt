@@ -1,0 +1,244 @@
+
+Create a complete android-compatible Android application named "SMS READER X"”.
+
+The app is for a merchant’s own authorized Android device. Its purpose is to read payment transaction notification SMS with explicit user consent and send only non-sensitive transaction information to the merchant’s configured HTTPS payment-reconciliation API.
+
+Important safety and privacy rules:
+- Never secretly read or forward SMS.
+- Never upload SMS automatically without clear user consent.
+- Never transmit OTPs, PINs, passwords, login codes, card numbers, NID numbers, or authentication codes.
+- Do not send all SMS messages. Process only transaction-notification messages from user-configured, approved sender IDs.
+- Support manual review before sending each transaction during initial setup.
+- Provide a visible background-service notification if any approved monitoring service is enabled.
+- Include Start Monitoring and Stop Monitoring buttons.
+- Use HTTPS only. Reject HTTP endpoints.
+- Do not hide the app, service, notification, or data collection.
+- Use fake sample SMS data for testing.
+
+Core workflow:
+1. User installs and opens the app.
+2. Show a clear consent screen explaining:
+   - Which SMS data will be read
+   - Which sender IDs are allowed
+   - Which API endpoint may receive the data
+   - How the user can stop monitoring
+3. Ask for the minimum necessary Android SMS permission.
+4. User configures approved sender IDs manually, for example:
+   - bKash
+   - Nagad
+   - Rocket
+   - Upay
+   - Other merchant-approved sender IDs
+5. When a new SMS arrives:
+   - Check whether the sender matches an approved sender ID.
+   - Parse only transaction-related messages.
+   - Ignore OTP, PIN, password, login, verification, and promotional messages.
+   - Show the parsed result inside the app.
+   - Add the transaction to a local Pending Transactions list.
+6. The user reviews the parsed transaction.
+7. Only after the user presses “Send to Gateway”, send the transaction to the configured API.
+8. Show success, failure, retry, and local-save status.
+9. Never retry forever and never send duplicate transactions.
+
+Required screens:
+
+A. Dashboard
+- Total transactions today
+- Successful submissions
+- Failed submissions
+- Pending review count
+- Last synchronization time
+- Monitoring status
+- Start Monitoring / Stop Monitoring buttons
+- Connection status indicator
+
+B. Transaction Inbox
+- List all locally parsed transaction notifications
+- Show:
+  - Payment provider
+  - Sender ID
+  - Transaction ID
+  - Amount
+  - Customer reference or masked number
+  - Date and time
+  - Status: Pending, Sent, Failed, Duplicate, Ignored
+- Add search and filters:
+  - Provider
+  - Date
+  - Amount
+  - Status
+- Allow opening a complete transaction detail page
+
+C. Transaction Details
+- Show parsed fields clearly:
+  - Provider
+  - Transaction ID
+  - Amount
+  - Currency
+  - Sender
+  - Timestamp
+  - Reference number
+  - Original SMS preview
+  - Parsing confidence
+- Mask sensitive values where appropriate.
+- Buttons:
+  - Send to Gateway
+  - Mark as Reviewed
+  - Ignore
+  - Delete Local Record
+
+D. API Settings
+Allow the merchant to configure:
+- HTTPS API URL
+- POST method only
+- Bearer token or API-key authentication
+- Header name
+- Secret value
+- Merchant ID
+- Terminal/device ID
+- Request timeout
+- Duplicate prevention setting
+- JSON field mapping
+
+Rules for API settings:
+- Validate HTTPS URL.
+- Store secrets using Android Keystore or encrypted storage.
+- Never put secrets in URL query parameters.
+- Never print secrets or SMS content in Logcat.
+- Provide “Test API” using fake transaction data only.
+- Show the endpoint domain clearly.
+- Require confirmation before saving a new endpoint.
+
+E. Sender and Parser Settings
+- Add, edit, enable, and disable approved sender IDs.
+
+- Configure separate parsing rules for each payment provider.
+- Use regex or safe parsing rules to extract:
+  - Transaction ID
+  - Amount
+  - Currency
+  - Date/time
+  - Customer reference
+  - Balance, if present
+- Do not treat balance as a payment amount.
+- Add a parser preview using fake SMS examples.
+- Include Bengali and English SMS examples.
+- Add a confidence score.
+- If parsing confidence is low, move the SMS to “Needs Review” instead of sending it.
+
+F. Duplicate Protection
+- Detect duplicate transaction IDs.
+- Do not send the same transaction twice.
+- Store a local hash of the transaction.
+- Show duplicate warnings.
+- Allow the merchant to manually override only after confirmation.
+
+G. API Request Preview
+Before sending:
+- Show destination domain
+- Show exact JSON payload
+- Show fields that will be transmitted
+- Show redacted values
+- Require the user to press “Confirm and Send”
+- Include Cancel button
+
+Example safe request payload:
+
+{
+  "merchant_id": "demo_merchant_001",
+  "provider": "example_provider",
+  "transaction_id": "TXN_DEMO_12345",
+  "amount": 100.00,
+  "currency": "BDT",
+  "reference": "CUSTOMER_REF_001",
+  "received_at": "2026-10-09T12:00:00Z",
+  "source": "merchant_sms_review",
+  "device_id": "demo_device_001"
+}
+
+H. Submission History
+- Show all API submissions locally:
+  - Transaction ID
+  - Date/time
+  - Destination domain
+  - HTTP status
+  - Success/failure
+  - Retry count
+- Do not store access tokens in history.
+- Do not store unnecessary full SMS content.
+
+I. Local Storage
+- Use SQLite or Room if available.
+- Encrypt sensitive local records if possible.
+- Provide:
+  - Export local report as CSV
+  - Delete one record
+  - Delete all records
+  - Clear submission history
+- Never upload local history automatically.
+
+J. Notifications
+- Show a notification when a new approved transaction is detected.
+- The notification must not reveal the full SMS or sensitive data.
+- Example:
+  “New payment notification requires review”
+- Show a persistent notification when monitoring is active.
+- Provide Stop Monitoring from the app.
+
+K. Error handling
+Handle:
+- Missing SMS permission
+- Missing sender
+- Empty SMS body
+- Multi-part SMS
+- Unsupported provider
+- Low parser confidence
+- No network
+- API timeout
+- HTTP 401, 403, 404, 429, and 500 errors
+- Duplicate transaction
+- Invalid API response
+- Missing transaction ID or amount
+
+L. Security
+- Use Android Keystore for API secrets.
+- Use HTTPS certificate validation.
+- Do not use WebView JavaScript for API communication.
+- Do not execute code received from the server.
+- Do not use dynamic code loading.
+- Do not log SMS bodies, tokens, or API secrets.
+- Provide a privacy policy screen.
+- Add a data deletion screen.
+- Add an audit log for user actions.
+
+M. UI design
+- Use Material Design.
+- Modern professional fintech dashboard.
+- Bengali and English language support.
+- Light and dark mode.
+- Green for successful payments.
+- Orange for pending review.
+- Red for failed requests.
+- Blue for monitoring and system status.
+- Use cards, tabs, search, filters, empty states, loading indicators, and retry actions.
+- Make the UI accessible with large buttons and readable typography.
+
+Implementation requirements:
+- Generate Sketchware-compatible Java code.
+- Separate code into reusable helper methods:
+  - parseTransactionSms()
+  - isApprovedSender()
+  - isSensitiveMessage()
+  - calculateConfidence()
+  - isDuplicateTransaction()
+  - buildJsonPayload()
+  - sendTransactionToApi()
+  - savePendingTransaction()
+- Use safe null checks for SMS intents and PDUs.
+- Support multi-part SMS.
+- Do not send a transaction until the user explicitly confirms it.
+- Include fake SMS samples for bKash, Nagad, Rocket, and Upay-style messages.
+- Do not include real API keys or real customer information.
+- Include a test checklist.
+- Include Android SMS permission and app-store policy limitations.
+﻿

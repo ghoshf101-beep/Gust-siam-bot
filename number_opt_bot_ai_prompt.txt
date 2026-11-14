@@ -1,0 +1,372 @@
+# ROLE
+You are an expert **Senior PHP Full-Stack Engineer, Telegram Bot Architect and CMS-style Admin Panel Designer** with deep technical experience in **PHP 8, MySQL, Telegram Bot API (webhook mode), cPanel shared hosting, cron jobs, dynamic database-driven bots, and secure wallet/payment logic**.
+
+---
+
+# TASK
+Your task is to build **a fully functional, 100% database-driven Number OTP Panel Telegram Bot with a complete web Admin Panel where EVERY single thing (bot texts, buttons, button colors, menus, services, ranges, number pool, API providers, OTP rates, OTP groups, channels, proxy link, traffic page, payment methods, users, balances, withdrawals, broadcasts, admins, roles, design, settings, backups) can be created, edited, enabled, disabled, reordered, duplicated and deleted from the admin panel and from the bot, with ZERO code editing after install**
+for **cPanel shared hosting (no SSH, no Composer, no Node.js), targeting Bangladeshi users (English + Bengali, BDT currency)** with extreme accuracy.
+
+Core principle: NOTHING user-facing is hardcoded. Every text, label, emoji, color, number, limit, link, order and visibility comes from the database and is editable in the admin panel. Hardcoded values exist ONLY as install-time defaults seeded by install.php.
+
+---
+
+# LANGUAGE MODE (STRICT)
+You MUST write ALL code, ALL logic, ALL files ONLY in:
+➡️ **PHP 8.x (procedural + simple functions), MySQL (SQL), plain CSS, plain JavaScript (only inside admin pages), plain HTML**
+
+❌ You are NOT allowed to use any other languages, frameworks, or syntaxes.
+❌ Do NOT auto-select alternatives.
+❌ Follow EXACTLY what is specified.
+
+---
+
+# TECH STACK (STRICT)
+Use ONLY the following technologies:
+✅ **PHP 8.x with PDO (MySQL) and cURL**
+✅ **Telegram Bot API via Webhook (setWebhook with secret_token)**
+✅ **cPanel Cron Job (cron.php every minute, internal loop about 55 seconds)**
+✅ **Session-based web admin with CSRF protection**
+
+DO NOT use under any circumstances:
+❌ Composer packages, Laravel, or any PHP framework
+❌ Long polling, SQLite, Firebase, Node.js, Python
+❌ External CSS/JS libraries, fonts or CDNs
+❌ Any AI-selected replacements
+
+---
+
+# FOLDER STRUCTURE
+Create the following EXACT structure:
+
+📁 **otp-panel-bot**
+┣ 📄 **config.php**
+┣ 📄 **database.sql**
+┣ 📄 **install.php**
+┣ 📄 **webhook.php**
+┣ 📄 **cron.php**
+┣ 📁 **lib**
+┃ ┣ 📄 **db.php**
+┃ ┣ 📄 **telegram.php**
+┃ ┣ 📄 **api.php**
+┃ ┣ 📄 **helpers.php**
+┃ ┣ 📄 **settings.php**
+┃ ┣ 📄 **texts.php**
+┃ ┣ 📄 **keyboards.php**
+┃ ┣ 📄 **wallet_core.php**
+┃ ┗ 📄 **otp_core.php**
+┣ 📁 **handlers**
+┃ ┣ 📄 **start.php**
+┃ ┣ 📄 **menu.php**
+┃ ┣ 📄 **numbers.php**
+┃ ┣ 📄 **otp.php**
+┃ ┣ 📄 **wallet.php**
+┃ ┣ 📄 **callbacks.php**
+┃ ┗ 📄 **admin_bot.php**
+┗ 📁 **admin**
+  ┣ 📄 **login.php**
+  ┣ 📄 **logout.php**
+  ┣ 📄 **layout.php**
+  ┣ 📄 **dashboard.php**
+  ┣ 📄 **users.php**
+  ┣ 📄 **balance.php**
+  ┣ 📄 **services.php**
+  ┣ 📄 **ranges.php**
+  ┣ 📄 **number_pool.php**
+  ┣ 📄 **api_providers.php**
+  ┣ 📄 **otp_groups.php**
+  ┣ 📄 **otp_logs.php**
+  ┣ 📄 **buttons.php**
+  ┣ 📄 **pages.php**
+  ┣ 📄 **texts.php**
+  ┣ 📄 **payment_methods.php**
+  ┣ 📄 **withdrawals.php**
+  ┣ 📄 **channels.php**
+  ┣ 📄 **broadcast.php**
+  ┣ 📄 **admins.php**
+  ┣ 📄 **settings.php**
+  ┣ 📄 **design.php**
+  ┣ 📄 **logs.php**
+  ┣ 📄 **backup.php**
+  ┗ 📄 **style.css**
+
+No extra folders.
+No renaming.
+No additional files unless specified.
+
+---
+
+# DESIGN SYSTEM (STRICT)
+
+### Color Palette (defaults, editable from admin/design.php and stored in `settings`):
+```
+--bg: #0B0F1A
+--card: #131A2B
+--primary: #00E5A0
+--accent: #7C5CFF
+--text: #E8ECF5
+--danger: #FF4D6A
+```
+
+### Card Style:
+```css
+.card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+```
+
+### Typography:
+- Font: **Inter (fallback: system-ui, sans-serif)**, no external font loading
+- Sizes: **Title 22px, Heading 16px, Body 14px, Small 12px**
+
+### Admin Panel Layout:
+- Left sidebar listing all pages, top bar with admin name and logout, fully responsive for mobile
+- Every list page has: search box, filters, pagination (25 per page), Add button, Edit modal, Duplicate, Delete with confirm, enable/disable toggle, and up/down reorder wherever order matters
+- Every form uses a CSRF token and shows success/error flash messages
+- Every page shows a live Telegram-style preview where it edits something users see (texts, buttons, group template)
+
+### Telegram Message Style:
+- HTML parse mode only
+- Header: 📩 <b>[ TITLE ]</b> then ━━━━━━━━━━━━━━━━━━━━━━
+- Numbers and OTP codes in <code></code>, SMS text in <blockquote></blockquote>
+- Footer on major messages is the `credit_text` setting.
+
+### Default Main Menu (reply keyboard, 2 columns, last row full width, seeded into `buttons` and fully editable):
+Row 1 → 📞 Get Number (success) | 🛒 Buy Proxy (primary)
+Row 2 → 🌐 Traffic (primary) | 🛡️ 2FA Online (success)
+Row 3 → 🎁 Refer (success) | 👤 My Profile (primary)
+Row 4 → 🆘 Support (danger, full width)
+
+### Button Colors:
+- Every reply-keyboard and inline button supports a `style` field (primary = blue, success = green, danger = red, none = default) sent through the Telegram Bot API `style` parameter, and an optional `icon_custom_emoji_id`
+- If the Telegram API rejects the field, the bot automatically retries the same message without it, so the bot never breaks
+- Defaults: service buttons = primary, Get Number / 2FA Online / Refer / Go to Proxy Bot = success, Support / Close = danger
+
+---
+
+# FEATURES (STRICT STEPS)
+
+### Feature 1 — Join, Captcha, Language:
+Step 1 → /start saves the user in `users`; a referral code in the payload sets `referrer_id` (ignore self-referral and existing users)
+Step 2 → If the user is banned, send the editable banned text and stop; if maintenance mode is ON and the user is not an admin, send the editable maintenance text and stop
+Step 3 → Check every active row in `channels` (type=force_join) with getChatMember; if any is not joined show Join buttons plus a Verify button
+Step 4 → If `captcha_enabled` = 1, show the emoji captcha (6 inline emoji buttons, one correct); on success set `captcha_done` = 1
+Step 5 → Show language choice (English / বাংলা), save in `users.lang`, then send the welcome message (optional photo, both from `texts`/`settings`) with the main menu built from the `buttons` table
+
+### Feature 2 — Dynamic Menu, Buttons and Custom Pages (everything editable):
+Step 1 → The main reply keyboard, inline menus and submenus are built ONLY from the `buttons` table
+Step 2 → Each button has: label_en, label_bn, emoji, style, icon_custom_emoji_id, action_type (builtin / url / page / submenu / contact_admin), action_value, parent_id, row_no, position, is_active, admin_only, min_balance (optional)
+Step 3 → Builtin actions: get_number, buy_proxy, traffic, twofa, search_otp, refer, profile, wallet, withdraw, leaderboard, language, support, close
+Step 4 → `pages` table lets admin create unlimited custom pages (title, text_en, text_bn, optional photo_file_id, up to 6 inline buttons with label/url/style); any button can open a page
+Step 5 → admin/buttons.php: add, edit, delete, duplicate, reorder up/down, move between rows and parents, pick color from a dropdown, hide/show, with a live preview of the keyboard; changes apply instantly with no restart
+
+### Feature 3 — Get Number (service picker, API mode and Manual Pool mode):
+Step 1 → User taps Get Number; send the editable text "Select a service:" with one active service per row (emoji + name, style primary) in admin order, and a final ❌ Close button (danger) that deletes the message
+Step 2 → After a service is selected, show its active `ranges` (flag, country, range code) one per row with ⬅️ Back and ❌ Close; admin can hide any range or service
+Step 3 → Number source per range is set by admin: `api` (use the provider's getnumber endpoint) or `pool` (take the oldest free row from `number_pool` and mark it assigned)
+Step 4 → Save in `numbers` (status=active, expires_at from `number_expiry_minutes`) and send to the user with buttons: 🔄 Change Number, 🔎 Search OTP, ❌ Cancel
+Step 5 → Enforce `max_active_numbers`, `cooldown_seconds`, and the per-service daily limit; cron auto-closes expired numbers and returns unused pool numbers to free if admin enabled "recycle"
+
+### Feature 4 — Buy Proxy, Traffic and Support (admin controlled):
+Step 1 → Buy Proxy sends the editable text "🌐 Buy Premium Proxy — Click the button below to buy high-speed proxies from our official Proxy Bot:" with a success-colored "Go to Proxy Bot" URL button (link editable) and a danger ❌ Close button
+Step 2 → Traffic shows live service traffic/availability pulled from the provider `liveaccess` endpoint (cached `liveaccess_cache_seconds`), formatted with the editable template; admin chooses which services appear and can switch Traffic OFF
+Step 3 → Support sends the editable support text with URL buttons to the support username/group/channel from `settings`
+Step 4 → Every one of these three has its text, buttons, links and on/off switch editable in admin/texts.php, admin/buttons.php and admin/settings.php
+
+### Feature 5 — OTP Auto Delivery (cron.php):
+Step 1 → cron.php runs every minute and loops about 55 seconds; every `check_interval` seconds it polls every active row in `api_providers` (success-otp-info endpoint) by priority, and also processes OTPs the admin adds manually for pool numbers
+Step 2 → Normalize numbers to digits only and find the active owner in `numbers`
+Step 3 → Dedupe with a unique hash of (number + sms text) in `otp_logs`
+Step 4 → In one DB transaction with row locking: insert `otp_logs`, credit the user the service rate (fallback `otp_rate`), insert `transactions` with balance_after, update `user_stats`, mark the number status=used
+Step 5 → Send the OTP to the user, then post to every matching active OTP group (Feature 6), then pay the referral bonus once on the referred user's first OTP
+Step 6 → If a provider fails 3 times in a row, mark it down, switch to the next priority provider, and notify the admins once
+
+### Feature 6 — OTP Group Broadcast (every OTP goes to the group):
+Step 1 → `otp_groups` stores multiple groups/channels (title, chat_id, filter_service_id or NULL for all, mask_number, mask_otp, template_text, button_label, button_url, button_style, is_active)
+Step 2 → Every successful OTP is posted automatically to all matching active groups
+Step 3 → Mask options set by admin: number = none / partial (+88017****5678) / hidden; OTP = full / partial / hidden
+Step 4 → Template is editable with placeholders {service} {emoji} {flag} {country} {number} {otp} {sms} {time} {bot_username} and includes an inline URL button to the bot
+Step 5 → Failed sends retry 3 times and are logged in `activity_logs`; each group has a "Send Test Message" button and a pause toggle
+
+### Feature 7 — Search OTP, 2FA Online and Profile:
+Step 1 → Search OTP sets `state` = search_otp; user sends a number; check `otp_logs` first, then the provider search-otp endpoint, and show the latest OTP and SMS
+Step 2 → 2FA Online sets `state` = twofa; user sends a Base32 secret; generate TOTP (30s, 6 digits, SHA1) in pure PHP; send the code with remaining seconds and a Refresh button; clear `state`
+Step 3 → My Profile shows name, ID, balance, total numbers, total OTPs, total earned, referrals, join date, language, with buttons for Wallet, Withdraw, Language (all editable)
+
+### Feature 8 — Wallet, Withdraw, Refer, Leaderboard:
+Step 1 → Wallet shows balance, total OTPs, total earned, pending withdrawals, and a Withdraw button
+Step 2 → Withdraw: choose from active `payment_methods` (admin-defined name, emoji, min, max, fee_percent, account_hint, daily_limit), enter account, enter amount; validate everything
+Step 3 → Deduct balance immediately in a transaction, insert `withdrawals` status=pending, notify admins with Approve/Reject buttons
+Step 4 → Approve marks paid (admin may add a transaction ID note) and notifies the user; Reject refunds with a reason and notifies the user
+Step 5 → Refer shows the personal link, referral count, bonus per referral, and a Share button; Leaderboard shows the top 10 with period filter (today / week / all time); admin can disable either
+
+### Feature 9 — Admin Web Panel (A to Z control):
+Step 1 → **Dashboard**: total users, new today, active numbers, OTPs today, earnings paid today, pending withdrawals, pool stock per service, provider status, 7-day chart drawn with plain HTML/CSS
+Step 2 → **Users and Balance**: search by ID/username/name; full profile with numbers, OTPs, transactions, referrals; ban/unban with reason; add, deduct or set balance with a required note (logged with the admin who did it); send a direct message; bulk add balance to all/selected users; export users as CSV
+Step 3 → **Services, Ranges, Number Pool**: full CRUD for services (name, emoji, rate, daily limit, button color, order, active); ranges (country, flag, code, source api/pool, provider, order, active); number pool with single add, bulk paste (one number per line), CSV-style paste, delete, mark free/used/disabled, duplicate skip, stock counters
+Step 4 → **API Providers**: add unlimited providers (name, base_url, api_key, key_header, paths for getnumber / search-otp / success-otp-info / liveaccess, field_map for response mapping, priority, is_active) with a "Test Connection" button and masked key display
+Step 5 → **Texts, Buttons, Pages, Design**: edit every bot message in English and Bengali (welcome, banned, maintenance, captcha, service picker, range picker, number message, OTP message, proxy, traffic, support, profile, wallet, withdraw, referral, leaderboard, all errors, group template); edit all buttons and custom pages; edit panel colors, bot name, credit text, welcome photo
+Step 6 → **Settings**: otp_rate, referral_bonus, min/max withdraw, max_active_numbers, number_expiry_minutes, cooldown_seconds, check_interval, liveaccess_cache_seconds, captcha_enabled, leaderboard_enabled, traffic_enabled, proxy_link, support_link, maintenance_mode, bot_username, credit_text, currency symbol
+Step 7 → **Channels, OTP Groups, Broadcast**: CRUD for force-join channels and OTP groups; broadcast to all / active / by language with text, photo and inline URL buttons (with colors), run in batches by cron with live progress, pause and stop
+Step 8 → **Withdrawals, Admins, Logs, Backup**: approve/reject with notes and filters; add/remove admins with roles (owner, manager, support) and per-page permission checkboxes; view `activity_logs` with filters; one-click SQL backup download of all tables
+
+### Feature 10 — Admin Inside the Bot:
+Step 1 → /admin works for Telegram IDs in the `admins` table (first owner from config.php)
+Step 2 → Inline admin menu: stats, add balance, deduct balance, ban/unban, broadcast, add numbers to pool, toggle maintenance, toggle service/range/button/group, edit a text, view pending withdrawals
+Step 3 → Add balance flow: send user ID, send amount, send note, confirm; the user receives a notification
+Step 4 → Add numbers flow: choose service and range, paste numbers, confirm; show how many were added and how many duplicates were skipped
+Step 5 → Every admin action is written to `activity_logs` with the admin ID
+
+---
+
+# DATABASE STRUCTURE
+Use ONLY this layout:
+
+**users**
+```
+id, telegram_id (unique), name, username, lang, balance, referrer_id, captcha_done, state, state_data, is_banned, ban_reason, last_active, created_at
+```
+
+**admins**
+```
+id, telegram_id (unique), name, role, permissions, web_username, web_password_hash, is_active, created_at
+```
+
+**services**
+```
+id, name, emoji, rate, daily_limit, style, position, is_active
+```
+
+**ranges**
+```
+id, service_id, country, flag, range_code, source (api/pool), provider_id, position, is_active
+```
+
+**number_pool**
+```
+id, service_id, range_id, number, status (free/assigned/used/disabled), assigned_to, created_at
+```
+
+**numbers**
+```
+id, user_id, service_id, range_id, number, provider_id, status, expires_at, created_at
+```
+
+**api_providers**
+```
+id, name, base_url, api_key, key_header, path_getnumber, path_search, path_success, path_liveaccess, field_map, priority, is_active, fail_count, last_status, last_checked
+```
+
+**otp_logs**
+```
+id, user_id, service_id, number, otp_code, sms_text, hash (unique), amount_paid, created_at
+```
+
+**otp_groups**
+```
+id, title, chat_id, filter_service_id, mask_number, mask_otp, template_text, button_label, button_url, button_style, is_active
+```
+
+**buttons**
+```
+id, label_en, label_bn, emoji, style, icon_custom_emoji_id, action_type, action_value, parent_id, row_no, position, is_active, admin_only, min_balance
+```
+
+**pages**
+```
+id, slug (unique), title, text_en, text_bn, photo_file_id, buttons_json, is_active
+```
+
+**texts**
+```
+tkey (unique), text_en, text_bn
+```
+
+**payment_methods**
+```
+id, name, emoji, min_amount, max_amount, fee_percent, daily_limit, account_hint, position, is_active
+```
+
+**withdrawals**
+```
+id, user_id, method_id, account, amount, fee, status, admin_note, processed_by, created_at, processed_at
+```
+
+**transactions**
+```
+id, user_id, type, amount, balance_after, note, admin_id, created_at
+```
+
+**user_stats**
+```
+user_id (unique), total_numbers, total_otps, total_earned
+```
+
+**channels**
+```
+id, title, chat_id, invite_link, type, is_active
+```
+
+**broadcasts**
+```
+id, message_type, content, photo_file_id, buttons_json, audience, status, total, sent, failed, last_user_id, created_at
+```
+
+**settings**
+```
+skey (unique), svalue
+```
+
+**activity_logs**
+```
+id, actor_type, actor_id, action, details, created_at
+```
+
+---
+
+# RULES (VERY STRICT)
+✅ Use PDO with prepared statements for EVERY query
+✅ Verify the `X-Telegram-Bot-Api-Secret-Token` header in webhook.php and reject everything else
+✅ Protect cron.php with a secret key in the URL or a CLI check
+✅ Escape all output with htmlspecialchars in the web admin and the bot
+✅ Wrap every balance change in a DB transaction with SELECT ... FOR UPDATE and write a `transactions` row with balance_after
+✅ Every bot text, button label, color, rate, limit, link and message comes from the database; read order is DB value, then install default
+✅ Cache settings, texts and buttons per request in static arrays
+✅ Web admin: password_hash, session_regenerate_id on login, CSRF on every POST, login rate limit (5 attempts then 10-minute lock), role and permission check on every page
+✅ API keys are shown masked (first 4 and last 4 characters) in admin lists
+✅ Only config.php holds DB credentials, BOT_TOKEN, WEBHOOK_SECRET, CRON_SECRET, BASE_URL and the first owner Telegram ID
+✅ install.php imports database.sql, seeds default texts (English and Bengali), buttons, services, payment methods and settings, creates the owner admin, sets the webhook, and tells the user to delete itself
+✅ Handle every API and Telegram failure gracefully and never show raw errors to users
+✅ Flood control: ignore repeat taps within 1 second per user
+✅ All inline Close buttons delete their own message
+❌ Do NOT add comments unless asked
+❌ Do NOT optimize code beyond instructions
+❌ Do NOT change structure, filenames, or logic
+❌ Do NOT add dependencies that are not listed
+
+---
+
+# OUTPUT REQUIREMENTS
+Generate ONLY the following files with full production-ready code:
+
+- **config.php** → credentials and base constants
+- **database.sql** → all tables, indexes, foreign keys, default rows
+- **install.php** → DB import, seed data, owner creation, webhook setup
+- **webhook.php** → update router with secret check, flood control, state machine
+- **cron.php** → OTP monitor, number expiry, broadcast batches, group posting, provider health
+- **lib/*.php** → db, telegram (with style fallback), api (multi-provider with fallback), helpers (including TOTP and masking), settings, texts, keyboards (dynamic from DB), wallet_core, otp_core
+- **handlers/*.php** → start, menu, numbers, otp, wallet, callbacks, admin_bot
+- **admin/*.php and admin/style.css** → every page listed in the folder structure, using the design system
+
+Additionally generate:
+- UI Screens
+- Functional logic
+- Workflow instructions
+- Integration steps (cPanel upload, MySQL database and user creation, config.php edit, running install.php, cron job command, adding the bot to the OTP group as admin, deleting install.php)
+
+DO NOT output anything outside these requirements.
+DO NOT insert explanations unless requested.
